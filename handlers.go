@@ -100,9 +100,50 @@ func handlerAgg(s *state, cmd command) error {
 	return nil
 }
 
+func handlerAddFeed(s *state, cmd command) error {
+	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+	if err != nil {
+		return err
+	}
+
+	if len(cmd.args) != 2 {
+		return fmt.Errorf("Need name and url of feed")
+	}
+
+	name := cmd.args[0]
+	url := cmd.args[1]
+
+	
+	feed, err := s.db.CreateFeed(context.Background(), database.CreateFeedParams{
+		ID:uuid.New(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+		UserID: user.ID,
+		Name: name,
+		Url: url,
+	})
+	if err != nil {
+		return fmt.Errorf("Error while creating feed: %w", err)
+	}
+	fmt.Println("Feed created")
+	//fmt.Printf("Feed: %v\n", feed)
+	printFeed(feed)
+	fmt.Println("=================================")
+	return nil
+}
 
 
 func printUser(user database.User) {
 	fmt.Printf(" * ID:      %v\n", user.ID)
 	fmt.Printf(" * Name:    %v\n", user.Name)
+}
+
+
+func printFeed(feed database.Feed) {
+	fmt.Printf("* ID:            %s\n", feed.ID)
+	fmt.Printf("* Created:       %v\n", feed.CreatedAt)
+	fmt.Printf("* Updated:       %v\n", feed.UpdatedAt)
+	fmt.Printf("* Name:          %s\n", feed.Name)
+	fmt.Printf("* URL:           %s\n", feed.Url)
+	fmt.Printf("* UserID:        %s\n", feed.UserID)
 }
