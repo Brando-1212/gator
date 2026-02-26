@@ -126,6 +126,18 @@ func handlerAddFeed(s *state, cmd command) error {
 		return fmt.Errorf("Error while creating feed: %w", err)
 	}
 	fmt.Println("Feed created")
+
+	_, err = s.db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
+		ID:uuid.New(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+		UserID:user.ID,
+		FeedID:feed.ID,
+	})
+	if err != nil {
+		return fmt.Errorf("Error when creating feed follow: %w", err)
+	}
+
 	//fmt.Printf("Feed: %v\n", feed)
 	printFeed(feed)
 	fmt.Println("=================================")
@@ -160,6 +172,55 @@ func handlerFeeds(s *state, cmd command) error {
 	//return nil
 }
 
+func handlerFollow(s *state, cmd command) error {
+	if len(cmd.args) != 1 {
+		return fmt.Errorf("Need to provide URL")
+	}
+	url := cmd.args[0]
+	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+	if err != nil {
+		return err
+	}
+
+	feed, err := s.db.GetFeedByURL(context.Background(), url)
+	if err != nil {
+		return fmt.Errorf("Error when getting feed: %w", err)
+	}
+
+	follows, err := s.db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
+		ID:uuid.New(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+		UserID:user.ID,
+		FeedID:feed.ID,
+	})
+	if err != nil {
+		return fmt.Errorf("Error when creating feed follow: %w", err)
+	}
+
+	fmt.Printf("%s followed by %s\n",follows.FeedName, follows.UserName)
+	return nil
+
+}
+
+func handlerFollowing(s *state, cmd command) error {
+	if len(cmd.args) != 0 {
+		return fmt.Errorf("No args needed for following command")
+	}
+	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+	if err != nil {
+		return err
+	}
+	followed, err := s.db.GETFeedFollowsForUser(context.Background(), user.ID)
+	if err != nil {
+		return fmt.Errorf("Error when getting user follows: %w", err)
+	}
+
+	fmt.Println(followed)
+
+	return nil
+
+}
 
 func printUser(user database.User) {
 	fmt.Printf(" * ID:      %v\n", user.ID)
