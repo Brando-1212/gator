@@ -132,6 +132,34 @@ func handlerAddFeed(s *state, cmd command) error {
 	return nil
 }
 
+func handlerFeeds(s *state, cmd command) error {
+	if len(cmd.args) != 0 {
+		return fmt.Errorf("No arguments needed for feeds command")
+	}
+	Feeds, err := s.db.GetFeeds(context.Background())
+	if err != nil {
+		return fmt.Errorf("Error while getting feeds: %w", err)
+	}
+	if len(Feeds) == 0 {
+		fmt.Println("No feeds in database.")
+		return nil
+	}
+
+	fmt.Println("feeds found")
+
+	for _, feed := range Feeds {
+		fmt.Printf("Feed: (Name: %s, Url: %s, User: %s)\n", feed.Name, feed.Url, feed.Name_2)
+		fmt.Println("======================================")
+	}
+
+	return nil
+
+
+
+	//fmt.Println(Feeds)
+	//return nil
+}
+
 
 func printUser(user database.User) {
 	fmt.Printf(" * ID:      %v\n", user.ID)
